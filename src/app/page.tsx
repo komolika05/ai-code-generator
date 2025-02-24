@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { dracula } from "react-syntax-highlighter/dist/esm/styles/prism";
+import { dracula , a11yDark} from "react-syntax-highlighter/dist/esm/styles/prism";
 
 
 export default function Home() {
@@ -53,13 +53,15 @@ export default function Home() {
         onClick={handleSolve}
         disabled={loading}
       >
-        {loading ? "Solving..." : "Generate Solution"}
+        {loading ? "Writing the code for you... Sit back and relax" : "Generate Solution"}
       </button>
+      <div className="w-75">
       {solution && (
-        <SyntaxHighlighter language="javascript" style={dracula}>
+        <SyntaxHighlighter language="javascript" style={a11yDark}>
           {solution}
         </SyntaxHighlighter>
       )}
+      </div>
     </div>
   );
 }
