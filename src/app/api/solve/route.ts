@@ -21,8 +21,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Problem is required" }, { status: 400 });
     }
 
-    console.log("🔹 Problem received:", problem);
-
     const chatSession = model.startChat({
       generationConfig,
       history: [], 
@@ -35,7 +33,6 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ solution }, { status: 200 });
   } catch (error: any) {
-    console.error("❌ Gemini API Error:", error?.message || error);
     return NextResponse.json({ error: "Failed to generate solution" }, { status: 500 });
   }
 }
