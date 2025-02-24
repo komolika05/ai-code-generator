@@ -61,7 +61,7 @@ export default function Home() {
       >
         {loading ? "Writing the code for you..." : "Generate Solution"}
       </button>
-      <div className="w-75 mt-2">
+      <div className="mt-2" style={{width:"85%"}}>
       {solution && (
         <SyntaxHighlighter language="javascript" style={a11yDark}>
           {solution}
