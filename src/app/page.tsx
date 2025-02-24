@@ -1,6 +1,9 @@
 'use client';
 
 import { useState } from "react";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { dracula } from "react-syntax-highlighter/dist/esm/styles/prism";
+
 
 export default function Home() {
   const [problem, setProblem] = useState("");
@@ -53,7 +56,9 @@ export default function Home() {
         {loading ? "Solving..." : "Generate Solution"}
       </button>
       {solution && (
-        <pre className="mt-4 p-4 bg-gray-800 rounded w-full max-w-2xl">{solution}</pre>
+        <SyntaxHighlighter language="javascript" style={dracula}>
+          {solution}
+        </SyntaxHighlighter>
       )}
     </div>
   );
