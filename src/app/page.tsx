@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { motion } from "framer-motion";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { dracula } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { Clipboard, ClipboardCheck, Edit, Save } from "lucide-react";
@@ -8,11 +9,12 @@ import { Clipboard, ClipboardCheck, Edit, Save } from "lucide-react";
 export default function Home() {
   const [problem, setProblem] = useState("");
   const [solution, setSolution] = useState("");
-  const [pureCode, setPureCode] = useState(""); // Only extracted code
+  const [pureCode, setPureCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [editedCode, setEditedCode] = useState(""); // Stores live edits
+  const [editedCode, setEditedCode] = useState("");
+  const [firstQuery, setFirstQuery] = useState(false); // Track first response
 
   const handleSolve = async () => {
     setLoading(true);
@@ -33,13 +35,13 @@ export default function Home() {
       const data = await res.json();
       const fullResponse = data.solution;
 
-      // Extract only the code part using regex
       const codeBlockMatch = fullResponse.match(/```(?:typescript|javascript|ts|js)?\n([\s\S]*?)```/);
       const extractedCode = codeBlockMatch ? codeBlockMatch[1].trim() : "⚠️ No code found in response";
 
       setSolution(fullResponse);
       setPureCode(extractedCode);
       setEditedCode(extractedCode);
+      setFirstQuery(true); // Set to true when first response is received
     } catch (error) {
       console.error("Error:", error);
       setSolution("An error occurred. Please try again.");
@@ -69,7 +71,19 @@ export default function Home() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-900 text-white p-6">
-      <h1 className="text-2xl font-bold mb-4">AI Code Assistant</h1>
+      
+      {/* ✨ Animated Heading (Disappears After First Solution) */}
+      {!firstQuery && (
+        <motion.h1
+          className="text-3xl md:text-4xl font-bold text-center mb-8"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1 }}
+          exit={{ opacity: 0, y: -20 }}
+        >
+          Hello Coder! 🚀 I am Your Coding AI Assistant - <span className="text-yellow-500">&lt;/DevMate&gt;</span>
+        </motion.h1>
+      )}
 
       <textarea
         className="w-full max-w-2xl p-3 border rounded bg-gray-800 text-white"
@@ -92,15 +106,14 @@ export default function Home() {
 
       {solution && (
         <div className="relative mt-6 w-full max-w-6xl">
-          {/* Explanation Box */}
+          
           <div className="bg-gray-800 p-4 rounded-lg text-gray-300">
-            <h2 className="text-lg font-semibold mb-2">Explanation:</h2>
             <p className="whitespace-pre-line">{solution.replace(/```[\s\S]*?```/g, "").trim()}</p>
           </div>
 
-          {/* Code Block with Edit & Save */}
           {pureCode !== "⚠️ No code found in response" && (
-            <div className="relative mt-4 bg-gray-900 px-2 rounded-lg border border-gray-700">
+            <div className="relative mt-4 bg-gray-900 p-2 rounded-lg border border-gray-700">
+              
               <div className="absolute top-2 right-2 flex space-x-2">
                 {isEditing ? (
                   <button onClick={saveEditedCode} className="p-2 bg-green-600 hover:bg-green-500 text-white rounded-lg">
@@ -117,11 +130,12 @@ export default function Home() {
                 </button>
               </div>
 
-             {isEditing ? (
+              {/* Editable Code Block */}
+              {isEditing ? (
                 <textarea
                   value={editedCode}
                   onChange={(e) => setEditedCode(e.target.value)}
-                  className="w-full p-3 font-mono text-sm bg-gray-800 text-white border rounded"
+                  className="w-full p-3 font-mono text-sm bg-gray-800 text-white border border-yellow-400 rounded"
                   rows={Math.max(editedCode.split("\n").length, 5)}
                 />
               ) : (
