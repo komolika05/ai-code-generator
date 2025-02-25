@@ -2,24 +2,23 @@
 
 import { useState } from "react";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { dracula, a11yDark } from "react-syntax-highlighter/dist/esm/styles/prism";
+import { dracula } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { Clipboard, ClipboardCheck } from "lucide-react";
 
 export default function Home() {
   const [problem, setProblem] = useState("");
   const [solution, setSolution] = useState("");
+  const [pureCode, setPureCode] = useState(""); 
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
 
   const handleSolve = async () => {
     setLoading(true);
     setSolution("");
+    setPureCode(""); 
     setCopied(false);
 
     try {
-      console.log("Request Method: POST");
-      console.log("Problem Value:", problem);
-      
       const res = await fetch("/api/solve", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -28,8 +27,15 @@ export default function Home() {
 
       if (!res.ok) throw new Error("Failed to fetch solution");
 
-      const data = await res.json(); 
-      setSolution(data.solution);
+      const data = await res.json();
+      const fullResponse = data.solution;
+
+      // Extract only the code part using regex
+      const codeBlockMatch = fullResponse.match(/```(?:typescript|javascript|ts|js)?\n([\s\S]*?)```/);
+      const extractedCode = codeBlockMatch ? codeBlockMatch[1].trim() : "⚠️ No code found in response";
+
+      setSolution(fullResponse); // Store full response with explanations
+      setPureCode(extractedCode); // Store only extracted code
     } catch (error) {
       console.error("Error:", error);
       setSolution("An error occurred. Please try again.");
@@ -40,10 +46,10 @@ export default function Home() {
   };
 
   const copyToClipboard = () => {
-    navigator.clipboard.writeText(solution)
+    navigator.clipboard.writeText(pureCode)
       .then(() => {
         setCopied(true);
-        setTimeout(() => setCopied(false), 2000); 
+        setTimeout(() => setCopied(false), 2000);
       })
       .catch(err => console.error("Failed to copy: ", err));
   };
@@ -73,25 +79,27 @@ export default function Home() {
 
       {solution && (
         <div className="relative mt-6 w-full max-w-6xl">
-          <div className="group relative">
-            <button
-              onClick={copyToClipboard}
-              className="absolute top-4 right-2 p-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg"
-            >
-              {copied ? <ClipboardCheck size={18} /> : <Clipboard size={18} />}
-            </button>
-
-            <span className="absolute top-[-30px] right-0 w-auto px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity">
-              Copy Code
-            </span>
+          <div className="bg-gray-800 p-4 rounded-lg text-gray-300">
+            <h2 className="text-lg font-semibold mb-2">Explanation:</h2>
+            <p className="whitespace-pre-line">{solution.replace(/```[\s\S]*?```/g, "").trim()}</p>
           </div>
 
-          <SyntaxHighlighter language="javascript" style={a11yDark}>
-            {solution}
-          </SyntaxHighlighter>
+          {pureCode !== "⚠️ No code found in response" && (
+            <div className="relative mt-4">
+              <button
+                onClick={copyToClipboard}
+                className="absolute top-2 right-2 p-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg"
+              >
+                {copied ? <ClipboardCheck size={18} /> : <Clipboard size={18} />}
+              </button>
+
+              <SyntaxHighlighter language="typescript" style={dracula} showLineNumbers>
+                {pureCode}
+              </SyntaxHighlighter>
+            </div>
+          )}
         </div>
       )}
-
     </div>
   );
 }
