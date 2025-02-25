@@ -130,7 +130,6 @@ export default function Home() {
                 </button>
               </div>
 
-              {/* Editable Code Block */}
               {isEditing ? (
                 <textarea
                   value={editedCode}
