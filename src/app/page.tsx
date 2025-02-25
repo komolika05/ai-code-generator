@@ -3,20 +3,23 @@
 import { useState } from "react";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { dracula } from "react-syntax-highlighter/dist/esm/styles/prism";
-import { Clipboard, ClipboardCheck } from "lucide-react";
+import { Clipboard, ClipboardCheck, Edit, Save } from "lucide-react";
 
 export default function Home() {
   const [problem, setProblem] = useState("");
   const [solution, setSolution] = useState("");
-  const [pureCode, setPureCode] = useState(""); 
+  const [pureCode, setPureCode] = useState(""); // Only extracted code
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedCode, setEditedCode] = useState(""); // Stores live edits
 
   const handleSolve = async () => {
     setLoading(true);
     setSolution("");
-    setPureCode(""); 
+    setPureCode("");
     setCopied(false);
+    setIsEditing(false);
 
     try {
       const res = await fetch("/api/solve", {
@@ -34,8 +37,9 @@ export default function Home() {
       const codeBlockMatch = fullResponse.match(/```(?:typescript|javascript|ts|js)?\n([\s\S]*?)```/);
       const extractedCode = codeBlockMatch ? codeBlockMatch[1].trim() : "⚠️ No code found in response";
 
-      setSolution(fullResponse); // Store full response with explanations
-      setPureCode(extractedCode); // Store only extracted code
+      setSolution(fullResponse);
+      setPureCode(extractedCode);
+      setEditedCode(extractedCode);
     } catch (error) {
       console.error("Error:", error);
       setSolution("An error occurred. Please try again.");
@@ -46,12 +50,21 @@ export default function Home() {
   };
 
   const copyToClipboard = () => {
-    navigator.clipboard.writeText(pureCode)
+    navigator.clipboard.writeText(editedCode)
       .then(() => {
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
       })
       .catch(err => console.error("Failed to copy: ", err));
+  };
+
+  const toggleEditMode = () => {
+    setIsEditing(!isEditing);
+  };
+
+  const saveEditedCode = () => {
+    setPureCode(editedCode);
+    setIsEditing(false);
   };
 
   return (
@@ -79,22 +92,43 @@ export default function Home() {
 
       {solution && (
         <div className="relative mt-6 w-full max-w-6xl">
+          {/* Explanation Box */}
           <div className="bg-gray-800 p-4 rounded-lg text-gray-300">
+            <h2 className="text-lg font-semibold mb-2">Explanation:</h2>
             <p className="whitespace-pre-line">{solution.replace(/```[\s\S]*?```/g, "").trim()}</p>
           </div>
 
-          {pureCode !== "⚠️ No code for this question" && (
-            <div className="relative mt-4">
-              <button
-                onClick={copyToClipboard}
-                className="absolute top-2 right-2 p-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg"
-              >
-                {copied ? <ClipboardCheck size={18} /> : <Clipboard size={18} />}
-              </button>
+          {/* Code Block with Edit & Save */}
+          {pureCode !== "⚠️ No code found in response" && (
+            <div className="relative mt-4 bg-gray-900 px-2 rounded-lg border border-gray-700">
+              <div className="absolute top-2 right-2 flex space-x-2">
+                {isEditing ? (
+                  <button onClick={saveEditedCode} className="p-2 bg-green-600 hover:bg-green-500 text-white rounded-lg">
+                    <Save size={18} />
+                  </button>
+                ) : (
+                  <button onClick={toggleEditMode} className="p-2 bg-yellow-600 hover:bg-yellow-500 text-white rounded-lg">
+                    <Edit size={18} />
+                  </button>
+                )}
 
-              <SyntaxHighlighter language="typescript" style={dracula} showLineNumbers>
-                {pureCode}
-              </SyntaxHighlighter>
+                <button onClick={copyToClipboard} className="p-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg">
+                  {copied ? <ClipboardCheck size={18} /> : <Clipboard size={18} />}
+                </button>
+              </div>
+
+             {isEditing ? (
+                <textarea
+                  value={editedCode}
+                  onChange={(e) => setEditedCode(e.target.value)}
+                  className="w-full p-3 font-mono text-sm bg-gray-800 text-white border rounded"
+                  rows={Math.max(editedCode.split("\n").length, 5)}
+                />
+              ) : (
+                <SyntaxHighlighter language="typescript" style={dracula} showLineNumbers>
+                  {pureCode}
+                </SyntaxHighlighter>
+              )}
             </div>
           )}
         </div>
