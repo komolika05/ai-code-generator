@@ -67,8 +67,6 @@ export async function POST(req: NextRequest) {
     const result = await chatSession.sendMessage(problem);
     const solution = result.response.text();
 
-    console.log("✅ Solution generated:", solution);
-
     return NextResponse.json({ solution }, { status: 200 });
   } catch (error: any) {
     return NextResponse.json({ error: "Failed to generate solution" }, { status: 500 });
