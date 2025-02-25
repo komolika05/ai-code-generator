@@ -72,7 +72,6 @@ export default function Home() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-900 text-white p-6">
       
-      {/* ✨ Animated Heading (Disappears After First Solution) */}
       {!firstQuery && (
         <motion.h1
           className="text-3xl md:text-4xl font-bold text-center mb-8"
