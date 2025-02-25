@@ -80,11 +80,10 @@ export default function Home() {
       {solution && (
         <div className="relative mt-6 w-full max-w-6xl">
           <div className="bg-gray-800 p-4 rounded-lg text-gray-300">
-            <h2 className="text-lg font-semibold mb-2">Explanation:</h2>
             <p className="whitespace-pre-line">{solution.replace(/```[\s\S]*?```/g, "").trim()}</p>
           </div>
 
-          {pureCode !== "⚠️ No code found in response" && (
+          {pureCode !== "⚠️ No code for this question" && (
             <div className="relative mt-4">
               <button
                 onClick={copyToClipboard}
